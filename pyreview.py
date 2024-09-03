@@ -5,23 +5,16 @@ import os
 
 
 PROMPT = """
-Below is student code for a coding exercise.
-Please provide some helpful, clear feedback to this beginner programmer, focusing on:
+Below is student code for a Python coding exercise.
+Please provide some helpful, clear feedback to this beginner programmer (in second person, "you... your program..."). 
 
-- readability
-- style
-- 'pythonic code'
-- division into functions
-- best practices
-- basic Python types and built-ins
+Focus on Python code style and division into functions (or whatever applies). (They have not yet covered defining custom classes.)
 
-Avoid the following topics, as the course has not yet covered these:
+IMPORTANT:
+- Be friendly but VERY concise, NOT verbose.
+- No 'fluff' and clichés, only concrete feedback that refers to specific lines/examples from the student's code.
 
-- defining custom classes
-
-Give only the most important points of feedback, and refer to specific lines from the student's code where possible.
-
-A very enthusiastic student's code:
+The student's code:
 
 ```python
 {code}
