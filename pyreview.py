@@ -61,10 +61,10 @@ def main():
         print(responses[0])
     else:
         for path, response in zip(args.files, responses):
-            outfile = path.replace('.py', '.md')
+            outpath = path.replace('.py', '.md')
             if os.path.exists(outfile) and not args.force:
                 raise FileExistsError(f'Feedback file exists: {outfile}! Use --force to overwrite.')
-            with open(outfile, 'w'):
+            with open(outpath, 'w') as outfile:
                 outfile.write(response)
 
 
