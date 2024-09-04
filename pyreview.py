@@ -65,13 +65,13 @@ def main():
 
     responses = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
 
-    if args.files == '-':
+    if len(args.files) == 1 and args.files[0] == sys.stdin:
         if args.prefix:
             print(args.prefix)
         print(responses[0])
     else:
-        for path, response in zip(args.files, responses):
-            outpath = path.replace('.py', '.md')
+        for file, response in zip(args.files, responses):
+            outpath = file.name.replace('.py', '.md')
             if os.path.exists(outpath) and not args.force:
                 raise FileExistsError(f'Feedback file exists: {outpath}! Use --force to overwrite.')
             with open(outpath, 'w') as outfile:
