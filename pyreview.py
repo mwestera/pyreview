@@ -43,7 +43,7 @@ def main():
         torch_dtype="auto",
         device_map="auto"
     )
-    model = model.to_device(device)
+    model = model.to(device)
     tokenizer = AutoTokenizer.from_pretrained(args.model)
 
     model_inputs = build_model_inputs(programs, tokenizer).to(device)
