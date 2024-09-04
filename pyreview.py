@@ -5,20 +5,17 @@ import os
 
 
 PROMPT = """
-Below is student code for a Python coding exercise.
-Please provide some helpful, clear feedback to this beginner programmer (in second person, "you... your program..."). 
-
-Focus on Python code style and division into functions (or whatever applies). (They have not yet covered defining custom classes.)
-
-IMPORTANT:
-- Be friendly but VERY concise, NOT verbose.
-- No 'fluff' and clichés, only concrete feedback that refers to specific lines/examples from the student's code.
-
-The student's code:
+I've done only a basic Python course and am still learning. Can you give some feedback on my code? 
 
 ```python
 {code}
 ```
+
+- Please give me AT MOST 3 points of improvement.
+- Avoid 'fluff' and clichés.
+- With specific reference to my code! 
+
+Thanks so much!
 """
 
 
@@ -46,6 +43,7 @@ def main():
         torch_dtype="auto",
         device_map="auto"
     )
+    model = model.to_device(device)
     tokenizer = AutoTokenizer.from_pretrained(args.model)
 
     model_inputs = build_model_inputs(programs, tokenizer).to(device)
@@ -73,7 +71,7 @@ def build_model_inputs(programs, tokenizer):
 
     for program in programs:
         messages = [
-            {"role": "system", "content": "You are a helpful, exciting assistant who really likes to review beginner Python code, and to encourage students to learn and improve!"},
+            {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": PROMPT.format(code=program)}
         ]
         text = tokenizer.apply_chat_template(
