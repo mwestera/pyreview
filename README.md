@@ -1,6 +1,6 @@
 # PyReview
 
-Wrapper around Huggingface  `transformers` for language generation, to easily request feedback on beginner Python code. 
+Wrapper around Huggingface  `transformers` for language generation with Large Language Models, to easily request feedback on beginner Python code. 
 
 ## Install
 
@@ -26,10 +26,10 @@ Or feed code through `stdin`, and it'll print feedback to `stdout`:
 $ cat some_code.py | pyreview
 ``` 
 
-You can specify any huggingface instruct model and it should work:
+A sensible default model will be used. You can specify any huggingface instruct model and it should work (though this particular model didn't give great results):
 
 ```bash
-$ cat some_code.py | pyreview --model jwnder/codellama_CodeLlama-70b-Instruct-hf-bnb-4bit
+$ cat some_code.py | pyreview --model Qwen/CodeQwen1.5-7B-Chat
 ```
 
 You can add some further nudges to the basic prompt:
@@ -43,3 +43,9 @@ And you can add a custom prefix (default: a disclaimer).
 ```bash
 $ cat some_code.py | pyreview --prefix "WARNING: The following was written by a robot."
 ``` 
+
+## Which model to use?
+
+Consider some of the 'instruct' models here:
+
+https://huggingface.co/spaces/bigcode/bigcode-models-leaderboard
