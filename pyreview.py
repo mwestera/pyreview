@@ -30,7 +30,6 @@ def main():
     argparser.add_argument('--nudge', nargs='*', type=str)
 
     args = argparser.parse_args()
-    print(args)
 
     if args.files == '-':
         programs = [sys.stdin.read()]
