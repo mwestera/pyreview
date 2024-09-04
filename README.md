@@ -32,8 +32,14 @@ You can specify any huggingface instruct model and it should work:
 $ cat some_code.py | pyreview --model jwnder/codellama_CodeLlama-70b-Instruct-hf-bnb-4bit
 ```
 
-Lastly, you can add some further nudges to the basic prompt:
+You can add some further nudges to the basic prompt:
 
 ```bash
 $ cat some_code.py | pyreview --nudge "Start your feedback with 'Dear human overlord'" "Format your feedback as a haiku please."
+``` 
+
+And you can add a custom prefix (default: a disclaimer).
+
+```bash
+$ cat some_code.py | pyreview --prefix "WARNING: The following was written by a robot."
 ``` 
