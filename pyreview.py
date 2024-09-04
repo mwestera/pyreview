@@ -39,7 +39,7 @@ def main():
             with open(path, 'r') as file:
                 programs.append(file.read())
 
-    prompt_format = functools.partial(PROMPT.format, nudge=''.join(f'- {nudge}\n' for nudge in args.nudge))
+    prompt_format = functools.partial(PROMPT.format, nudge=''.join(f'- {nudge}\n' for nudge in args.nudge) if args.nudge else '')
 
     device = "cuda"  # the device to load the model onto
     model = AutoModelForCausalLM.from_pretrained(
