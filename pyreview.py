@@ -2,21 +2,22 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import sys
 import argparse
 import os
+import functools
 
 
 PROMPT = """
-I've done only a basic Python course and am still learning. Can you give some feedback on my code? 
+Can you give some feedback on my beginner Python code? 
 
 ```python
 {code}
 ```
 
 - Please give me AT MOST 3 points of improvement.
-- Avoid 'fluff' and clichés.
-- With specific reference to my code! 
-
+- Avoid 'fluff' and clichés; refer to specific parts of my code! 
+- DON'T write example code for me; only some hints.
+{nudges}
 Thanks so much!
-"""
+""".strip()
 
 
 
@@ -26,6 +27,7 @@ def main():
     argparser.add_argument('files', nargs='*', default='-', type=str)
     argparser.add_argument('--model', nargs='?', default="Qwen/CodeQwen1.5-7B-Chat", type=str)
     argparser.add_argument('--force', required=False, action='store_true')
+    argparser.add_argument('--nudges', nargs='*', type=str)
 
     args = argparser.parse_args()
 
@@ -37,6 +39,8 @@ def main():
             with open(path, 'r') as file:
                 programs.append(file.read())
 
+    prompt_format = functools.partial(PROMPT.format, nudges=''.join(f'- {nudge}\n' for nudge in args.nudges))
+
     device = "cuda"  # the device to load the model onto
     model = AutoModelForCausalLM.from_pretrained(
         args.model,
@@ -46,7 +50,7 @@ def main():
     model = model.to(device)
     tokenizer = AutoTokenizer.from_pretrained(args.model)
 
-    model_inputs = build_model_inputs(programs, tokenizer).to(device)
+    model_inputs = build_model_inputs(programs, tokenizer, prompt_format).to(device)
 
     generated_ids = model.generate(
         model_inputs.input_ids,
@@ -66,13 +70,13 @@ def main():
                 outfile.write(response)
 
 
-def build_model_inputs(programs, tokenizer):
+def build_model_inputs(programs, tokenizer, prompt_format):
     texts = []
 
     for program in programs:
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": PROMPT.format(code=program)}
+            {"role": "user", "content": prompt_format(code=program).strip()}
         ]
         text = tokenizer.apply_chat_template(
             messages,
