@@ -15,7 +15,7 @@ Can you give some feedback on my beginner Python code?
 - Please give me AT MOST 3 points of improvement.
 - Avoid 'fluff' and clichés; refer to specific parts of my code! 
 - DON'T write example code for me; only some hints.
-{nudges}
+{nudge}
 Thanks so much!
 """.strip()
 
@@ -27,9 +27,10 @@ def main():
     argparser.add_argument('files', nargs='*', default='-', type=str)
     argparser.add_argument('--model', nargs='?', default="Qwen/CodeQwen1.5-7B-Chat", type=str)
     argparser.add_argument('--force', required=False, action='store_true')
-    argparser.add_argument('--nudges', nargs='*', type=str)
+    argparser.add_argument('--nudge', nargs='*', type=str)
 
     args = argparser.parse_args()
+    print(args)
 
     if args.files == '-':
         programs = [sys.stdin.read()]
@@ -39,7 +40,7 @@ def main():
             with open(path, 'r') as file:
                 programs.append(file.read())
 
-    prompt_format = functools.partial(PROMPT.format, nudges=''.join(f'- {nudge}\n' for nudge in args.nudges))
+    prompt_format = functools.partial(PROMPT.format, nudge=''.join(f'- {nudge}\n' for nudge in args.nudge))
 
     device = "cuda"  # the device to load the model onto
     model = AutoModelForCausalLM.from_pretrained(
