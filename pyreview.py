@@ -41,17 +41,15 @@ def main():
 
     programs = [file.read() for file in args.files]
     prompt_format = functools.partial(PROMPT.format, nudge=args.nudge)
-    device = "cuda"  # the device to load the model onto; TODO What if no cuda available, will this be ok?
 
     model = AutoModelForCausalLM.from_pretrained(
         args.model,
         torch_dtype="auto",
         device_map="auto"
     )
-    # model = model.to(device)    # not needed / and does not work with pre-quantized model?
     tokenizer = AutoTokenizer.from_pretrained(args.model)
 
-    model_inputs = build_model_inputs(programs, tokenizer, prompt_format).to(device)
+    model_inputs = build_model_inputs(programs, tokenizer, prompt_format)
     model_outputs = model.generate(model_inputs.input_ids, max_new_tokens=MAX_NEW_TOKENS)
     generated_ids = (output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, model_outputs))
     responses = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
