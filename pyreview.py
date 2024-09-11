@@ -1,6 +1,5 @@
-import json
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import pipeline
 import sys
 import argparse
 import os
@@ -60,26 +59,17 @@ def main():
 
     prompt_format = functools.partial(PROMPT.format, nudge=args.nudge)
 
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model,
-        torch_dtype="auto",
-        device_map="auto"
-    )
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
-
-    model_inputs = build_model_inputs(programs, tokenizer, prompt_format)
-    model_outputs = model.generate(model_inputs.input_ids, max_new_tokens=MAX_NEW_TOKENS)
-    generated_ids = (output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, model_outputs))
-    responses = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-
-    if len(args.files) == 1 and args.files[0] == sys.stdin:
-        if args.prefix:
-            print(args.prefix)
-        print(responses[0])
-        if args.withcode:
-            print(f'\n## Your submitted code:\n\n```python\n{programs[0]}\n```\n')
-    else:
-        for file, program, response in zip(args.files, programs, responses):
+    pipe = pipeline("text-generation", model="args.model")
+    chat_starts = build_model_inputs(programs, prompt_format)
+    responses = pipe(list(chat_starts), max_new_tokens=MAX_NEW_TOKENS, temperature=args.temp)  # TODO remove list once transformers allows generator
+    for file, program, response in zip(args.files, programs, responses):
+        if file == sys.stdin:
+            if args.prefix:
+                print(args.prefix)
+            print(list(responses)[0])
+            if args.withcode:
+                print(f'\n## Your submitted code:\n\n```python\n{programs[0]}\n```\n')
+        else:
             outpath = os.path.splitext(file.name)[0] + '.md'
             if os.path.exists(outpath) and not args.force:
                 raise FileExistsError(f'Feedback file exists: {outpath}! Use --force to overwrite.')
@@ -98,15 +88,15 @@ def parse_args():
     argparser.add_argument('files', nargs='*', default=[sys.stdin], type=argparse.FileType('r'), help='Specify one or more .py or .ipynb files; default stdin')
     argparser.add_argument('--model', nargs='?', default="jwnder/codellama_CodeLlama-70b-Instruct-hf-bnb-4bit", type=str)
     argparser.add_argument('--force', required=False, action='store_true', help='To force overwriting if feedback .md files already exist.')
-    argparser.add_argument('--nudge', nargs='*', type=str, help='To tweak the default prompt by adding one or more nudges.')
+    argparser.add_argument('--nudge', nargs='*', default=[], type=str, help='To tweak the default prompt by adding one or more nudges.')
+    argparser.add_argument('--temp', required=False, type=float, help='Temperature', default=.1)
     argparser.add_argument('--prefix', required=False, type=str, default=PREFIX, help='To prefix some text in each feedback file; default is a disclaimer about LLMs.')
     argparser.add_argument('--withcode', required=False, action='store_true', help='To include the input code in the feedback file.')
 
     args = argparser.parse_args()
     if args.prefix and '{model}' in args.prefix:
         args.prefix = args.prefix.format(model=args.model)
-    if args.nudge:
-        args.nudge = ''.join(f'- {nudge}\n' for nudge in args.nudge)
+    args.nudge = ''.join(f'- {nudge}\n' for nudge in args.nudge)
 
     return args
 
@@ -118,22 +108,14 @@ def extract_notebook_code(notebook):
     return '\n\n'.join(code_cell_contents)
 
 
-def build_model_inputs(programs, tokenizer, prompt_format):
-    texts = []
+def build_model_inputs(programs, prompt_format):
 
     for program in programs:
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt_format(code=program).strip()}
         ]
-        text = tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True
-        )
-        texts.append(text)
-
-    return tokenizer(texts, return_tensors="pt")
+        yield messages
 
 
 if __name__ == '__main__':

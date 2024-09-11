@@ -32,17 +32,24 @@ A sensible default model will be used. You can specify any huggingface instruct 
 $ cat some_code.py | pyreview --model Qwen/CodeQwen1.5-7B-Chat
 ```
 
+It works on both .py and .ipynb files (though only the notebook's code is fed into the LLM), and you can include `--withcode` to repeat the raw code in the feedback files, for easy reference:
+
+```bash
+pyreview *.py *.ipynb --withcode
+```
+
 You can add some further nudges to the basic prompt:
 
 ```bash
 $ cat some_code.py | pyreview --nudge "Start your feedback with 'Dear human overlord'" "Format your feedback as a haiku please."
 ``` 
 
-And you can add a custom prefix (default: a disclaimer).
+And you can add a custom prefix to the feedback files (default: a disclaimer about LLM reliability).
 
 ```bash
 $ cat some_code.py | pyreview --prefix "WARNING: The following was written by a robot."
 ``` 
+
 
 ## Which model to use?
 
