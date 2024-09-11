@@ -1,9 +1,12 @@
+import json
+
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import sys
 import argparse
 import os
 import functools
 import logging
+import nbformat
 
 
 PROMPT = """
@@ -39,7 +42,22 @@ def main():
     args = parse_args()
     logging.basicConfig(level=logging.INFO)
 
-    programs = [file.read() for file in args.files]
+    programs = []
+
+    for file in args.files:
+        content = file.read()
+
+        if file.name.endswith('.py'):
+            program = file.read()
+        else:   # .ipynb or stdin
+            try:
+                notebook = nbformat.reads(content)
+                program = extract_notebook_code(notebook)
+            except nbformat.ValidationError:
+                program = content
+
+        programs.append(program)
+
     prompt_format = functools.partial(PROMPT.format, nudge=args.nudge)
 
     model = AutoModelForCausalLM.from_pretrained(
@@ -60,7 +78,7 @@ def main():
         print(responses[0])
     else:
         for file, response in zip(args.files, responses):
-            outpath = file.name.replace('.py', '.md')
+            outpath = os.path.splitext(file.name)[0] + '.md'
             if os.path.exists(outpath) and not args.force:
                 raise FileExistsError(f'Feedback file exists: {outpath}! Use --force to overwrite.')
             with open(outpath, 'w') as outfile:
@@ -72,7 +90,7 @@ def main():
 
 def parse_args():
     argparser = argparse.ArgumentParser(description='Auto-review Python code for beginners.')
-    argparser.add_argument('files', nargs='*', default=[sys.stdin], type=argparse.FileType('r'))
+    argparser.add_argument('files', nargs='*', default=[sys.stdin], type=argparse.FileType('r'), help='Specify one or more .py or .ipynb files; default stdin')
     argparser.add_argument('--model', nargs='?', default="jwnder/codellama_CodeLlama-70b-Instruct-hf-bnb-4bit", type=str)
     argparser.add_argument('--force', required=False, action='store_true')
     argparser.add_argument('--nudge', nargs='*', type=str)
@@ -85,6 +103,18 @@ def parse_args():
         args.nudge = ''.join(f'- {nudge}\n' for nudge in args.nudge)
 
     return args
+
+
+def extract_notebook_code(notebook):
+
+    code_cells = [cell['source'] for cell in notebook['cells'] if cell['cell_type'] == 'code']
+
+    code = []
+    for i, code in enumerate(code_cells, 1):
+        code.append(code)
+        code.append('\n\n')
+
+    return '\n'.join(code)
 
 
 def build_model_inputs(programs, tokenizer, prompt_format):
