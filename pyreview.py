@@ -44,6 +44,12 @@ def main():
     programs = []
 
     for file in args.files:
+
+        if file != sys.stdin:
+            outpath = os.path.splitext(file.name)[0] + '.md'
+            if os.path.exists(outpath) and not args.force:
+                raise FileExistsError(f'Feedback file exists: {outpath}! Use --force to overwrite.')
+
         content = file.read()
 
         if os.path.splitext(file.name)[-1] == '.py':
@@ -63,7 +69,7 @@ def main():
     chat_starts = build_model_inputs(programs, prompt_format)
     responses = pipe(list(chat_starts), max_new_tokens=MAX_NEW_TOKENS, temperature=args.temp)  # TODO remove list once transformers allows generator
     for file, program, response in zip(args.files, programs, responses):
-        response = response[0]
+        response = response[0]['generated_text'][-1]['content']
         if file == sys.stdin:
             if args.prefix:
                 print(args.prefix)
@@ -72,8 +78,6 @@ def main():
                 print(f'\n## Your submitted code:\n\n```python\n{program}\n```\n')
         else:
             outpath = os.path.splitext(file.name)[0] + '.md'
-            if os.path.exists(outpath) and not args.force:
-                raise FileExistsError(f'Feedback file exists: {outpath}! Use --force to overwrite.')
             with open(outpath, 'w') as outfile:
                 if args.prefix:
                     outfile.write(args.prefix + '\n')
