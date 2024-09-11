@@ -59,7 +59,7 @@ def main():
 
     prompt_format = functools.partial(PROMPT.format, nudge=args.nudge)
 
-    pipe = pipeline("text-generation", model="args.model")
+    pipe = pipeline("text-generation", model=args.model)
     chat_starts = build_model_inputs(programs, prompt_format)
     responses = pipe(list(chat_starts), max_new_tokens=MAX_NEW_TOKENS, temperature=args.temp)  # TODO remove list once transformers allows generator
     for file, program, response in zip(args.files, programs, responses):
