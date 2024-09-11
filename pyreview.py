@@ -47,8 +47,8 @@ def main():
     for file in args.files:
         content = file.read()
 
-        if file.name.endswith('.py'):
-            program = file.read()
+        if os.path.splitext(file.name)[-1] == '.py':
+            program = content
         else:   # .ipynb or stdin
             try:
                 notebook = nbformat.reads(content, as_version=4)
@@ -76,15 +76,20 @@ def main():
         if args.prefix:
             print(args.prefix)
         print(responses[0])
+        if args.withcode:
+            print(f'\n## Your submitted code:\n\n```python\n{programs[0]}\n```\n')
     else:
-        for file, response in zip(args.files, responses):
+        for file, program, response in zip(args.files, programs, responses):
             outpath = os.path.splitext(file.name)[0] + '.md'
             if os.path.exists(outpath) and not args.force:
                 raise FileExistsError(f'Feedback file exists: {outpath}! Use --force to overwrite.')
             with open(outpath, 'w') as outfile:
                 if args.prefix:
-                    outfile.write(args.prefix)
-                outfile.write(response)
+                    outfile.write(args.prefix + '\n')
+                outfile.write(response + '\n')
+                if args.withcode:
+                    outfile.write(f'\n## Your submitted code:\n\n```python\n{program}\n```\n')
+
                 logging.info(f'Feedback written to {outfile.name}.')
 
 
@@ -92,9 +97,10 @@ def parse_args():
     argparser = argparse.ArgumentParser(description='Auto-review Python code for beginners.')
     argparser.add_argument('files', nargs='*', default=[sys.stdin], type=argparse.FileType('r'), help='Specify one or more .py or .ipynb files; default stdin')
     argparser.add_argument('--model', nargs='?', default="jwnder/codellama_CodeLlama-70b-Instruct-hf-bnb-4bit", type=str)
-    argparser.add_argument('--force', required=False, action='store_true')
-    argparser.add_argument('--nudge', nargs='*', type=str)
-    argparser.add_argument('--prefix', required=False, type=str, default=PREFIX)
+    argparser.add_argument('--force', required=False, action='store_true', help='To force overwriting if feedback .md files already exist.')
+    argparser.add_argument('--nudge', nargs='*', type=str, help='To tweak the default prompt by adding one or more nudges.')
+    argparser.add_argument('--prefix', required=False, type=str, default=PREFIX, help='To prefix some text in each feedback file; default is a disclaimer about LLMs.')
+    argparser.add_argument('--withcode', required=False, action='store_true', help='To include the input code in the feedback file.')
 
     args = argparser.parse_args()
     if args.prefix and '{model}' in args.prefix:
