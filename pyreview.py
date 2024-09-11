@@ -107,10 +107,10 @@ def parse_args():
 
 def extract_notebook_code(notebook):
 
-    code_cells = [cell['source'] for cell in notebook['cells'] if cell['cell_type'] == 'code']
+    code_cell_contents = [cell['source'] for cell in notebook['cells'] if cell['cell_type'] == 'code']
 
     code = []
-    for i, code in enumerate(code_cells, 1):
+    for i, code in enumerate(code_cell_contents, 1):
         code.append(code)
         code.append('\n\n')
 
