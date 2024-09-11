@@ -109,12 +109,7 @@ def extract_notebook_code(notebook):
 
     code_cell_contents = [cell['source'] for cell in notebook['cells'] if cell['cell_type'] == 'code']
 
-    code = []
-    for i, code in enumerate(code_cell_contents, 1):
-        code.append(code)
-        code.append('\n\n')
-
-    return '\n'.join(code)
+    return '\n\n'.join(code_cell_contents)
 
 
 def build_model_inputs(programs, tokenizer, prompt_format):
