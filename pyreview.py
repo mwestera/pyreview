@@ -51,7 +51,7 @@ def main():
             program = file.read()
         else:   # .ipynb or stdin
             try:
-                notebook = nbformat.reads(content)
+                notebook = nbformat.reads(content, as_version=4)
                 program = extract_notebook_code(notebook)
             except nbformat.ValidationError:
                 program = content
