@@ -63,12 +63,13 @@ def main():
     chat_starts = build_model_inputs(programs, prompt_format)
     responses = pipe(list(chat_starts), max_new_tokens=MAX_NEW_TOKENS, temperature=args.temp)  # TODO remove list once transformers allows generator
     for file, program, response in zip(args.files, programs, responses):
+        response = response[0]
         if file == sys.stdin:
             if args.prefix:
                 print(args.prefix)
-            print(list(responses)[0])
+            print(response)
             if args.withcode:
-                print(f'\n## Your submitted code:\n\n```python\n{programs[0]}\n```\n')
+                print(f'\n## Your submitted code:\n\n```python\n{program}\n```\n')
         else:
             outpath = os.path.splitext(file.name)[0] + '.md'
             if os.path.exists(outpath) and not args.force:
