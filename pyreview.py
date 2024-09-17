@@ -87,11 +87,15 @@ def main():
 
                 logging.info(f'Feedback written to {outfile.name}.')
 
+"""
+jwnder/codellama_CodeLlama-70b-Instruct-hf-bnb-4bit disappointment
+unsloth/Meta-Llama-3.1-70B-Instruct-bnb-4bit much better
+"""
 
 def parse_args():
     argparser = argparse.ArgumentParser(description='Auto-review Python code for beginners.')
     argparser.add_argument('files', nargs='*', default=[sys.stdin], type=argparse.FileType('r'), help='Specify one or more .py or .ipynb files; default stdin')
-    argparser.add_argument('--model', nargs='?', default="jwnder/codellama_CodeLlama-70b-Instruct-hf-bnb-4bit", type=str)
+    argparser.add_argument('--model', nargs='?', default="unsloth/Meta-Llama-3.1-70B-Instruct-bnb-4bit", type=str)
     argparser.add_argument('--force', required=False, action='store_true', help='To force overwriting if feedback .md files already exist.')
     argparser.add_argument('--nudge', nargs='*', default=[], type=str, help='To tweak the default prompt by adding one or more nudges.')
     argparser.add_argument('--temp', required=False, type=float, help='Temperature', default=.1)
